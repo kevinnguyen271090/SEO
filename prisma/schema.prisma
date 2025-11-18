@@ -1,0 +1,154 @@
+// Financial Trading Platform Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User authentication and profile
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  telegramId    String?   @unique
+  emailVerified Boolean   @default(false)
+  preferences   String?   // Alert settings, theme, etc (JSON serialized)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  portfolios    Portfolio[]
+  backtests     Backtest[]
+  alerts        Alert[]
+
+  @@index([email])
+}
+
+// Virtual or live trading portfolios
+model Portfolio {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  type      String   // "paper" or "live"
+  balance   Float    @default(100000) // Starting balance
+  currency  String   @default("USD")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades    Trade[]
+
+  @@index([userId, type])
+}
+
+// AI-generated trading signals
+model Signal {
+  id           String   @id @default(cuid())
+  symbol       String   // Stock symbol (e.g., "AAPL", "VN30F2401")
+  type         String   // "BUY", "SELL", "HOLD"
+  confidence   Float    // 0-100 confidence score
+  entryPrice   Float
+  targetPrice  Float?
+  stopLoss     Float?
+  indicators   String   // Technical indicator values (JSON serialized)
+  reasoning    String?  // AI-generated reasoning
+  status       String   @default("active") // "active", "executed", "expired"
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  trades       Trade[]
+
+  @@index([symbol, createdAt])
+  @@index([status, createdAt])
+}
+
+// Executed trades (paper or live)
+model Trade {
+  id           String    @id @default(cuid())
+  portfolioId  String
+  signalId     String?
+  symbol       String
+  type         String    // "BUY" or "SELL"
+  quantity     Float
+  entryPrice   Float
+  exitPrice    Float?
+  entryDate    DateTime  @default(now())
+  exitDate     DateTime?
+  pnl          Float?    // Profit/Loss
+  pnlPercent   Float?    // P&L percentage
+  status       String    @default("open") // "open", "closed"
+  notes        String?   // User's trading journal
+
+  portfolio    Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  signal       Signal?   @relation(fields: [signalId], references: [id])
+
+  @@index([portfolioId, status])
+  @@index([symbol, entryDate])
+}
+
+// Backtesting results
+model Backtest {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  strategyConfig String  // Strategy parameters (JSON serialized)
+  symbols       String   // Tested symbols (comma-separated)
+  startDate     DateTime
+  endDate       DateTime
+
+  // Performance metrics
+  totalTrades   Int
+  winningTrades Int
+  losingTrades  Int
+  winRate       Float
+  profitFactor  Float
+  maxDrawdown   Float
+  totalReturn   Float
+  sharpeRatio   Float?
+
+  results       String   // Detailed trade-by-trade results (JSON serialized)
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// Alert notifications
+model Alert {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "signal", "price_alert", "portfolio_update"
+  title     String
+  message   String
+  data      String?  // Additional context (JSON serialized)
+  isRead    Boolean  @default(false)
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// Market data cache (to reduce API calls)
+model MarketData {
+  id        String   @id @default(cuid())
+  symbol    String
+  interval  String   // "1m", "5m", "1h", "1d"
+  timestamp DateTime
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    Float
+
+  @@unique([symbol, interval, timestamp])
+  @@index([symbol, interval, timestamp])
+}
