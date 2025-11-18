@@ -1,9 +1,10 @@
 "use client"
 
-import { Bell, Settings, TrendingUp, User, LogOut } from 'lucide-react'
+import { Settings, TrendingUp, User, LogOut } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
+import { NotificationsDropdown } from '@/components/layout/notifications-dropdown'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +28,7 @@ export function DashboardHeader() {
         </div>
 
         <nav className="flex items-center gap-4">
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <NotificationsDropdown />
           <ThemeToggle />
 
           {session?.user && (
