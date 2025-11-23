@@ -4,6 +4,7 @@ import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn, formatCurrency, formatPercent } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 // Mock data - will be replaced with real API calls
 const mockSignals = [
@@ -53,8 +54,13 @@ export function SignalsFeed() {
 }
 
 function SignalCard({ signal }: { signal: typeof mockSignals[0] }) {
+  const router = useRouter()
   const isBuy = signal.type === 'BUY'
   const potentialProfit = ((signal.targetPrice - signal.entryPrice) / signal.entryPrice) * 100
+
+  const handleViewChart = () => {
+    router.push(`/signals/${signal.symbol}`)
+  }
 
   return (
     <Card
@@ -127,7 +133,7 @@ function SignalCard({ signal }: { signal: typeof mockSignals[0] }) {
         <Button size="sm" className="flex-1" variant={isBuy ? "default" : "destructive"}>
           Execute Trade
         </Button>
-        <Button size="sm" variant="outline">
+        <Button size="sm" variant="outline" onClick={handleViewChart}>
           View Chart
         </Button>
       </div>
