@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { db } from '@/lib/db'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     const { email, password, name } = await request.json()
@@ -64,10 +67,19 @@ export async function POST(request: Request) {
         name: user.name,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error)
+
+    // Return more detailed error for debugging
+    const errorMessage = error?.message || 'Unknown error'
+    const errorCode = error?.code || 'UNKNOWN'
+
     return NextResponse.json(
-      { error: 'Failed to create account' },
+      {
+        error: 'Failed to create account',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+        code: errorCode,
+      },
       { status: 500 }
     )
   }
