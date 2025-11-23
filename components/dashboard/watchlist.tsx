@@ -15,16 +15,96 @@ interface WatchlistItem {
   changePercent: number
 }
 
-// Mock data - will be replaced with real API
-const mockWatchlistData: Record<string, WatchlistItem> = {
-  AAPL: { symbol: 'AAPL', name: 'Apple Inc.', price: 178.25, change: 2.35, changePercent: 1.34 },
-  TSLA: { symbol: 'TSLA', name: 'Tesla Inc.', price: 238.45, change: -5.20, changePercent: -2.13 },
-  NVDA: { symbol: 'NVDA', name: 'NVIDIA Corp.', price: 522.35, change: 12.80, changePercent: 2.51 },
-  GOOGL: { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 141.80, change: 0.95, changePercent: 0.67 },
-  MSFT: { symbol: 'MSFT', name: 'Microsoft Corp.', price: 378.90, change: 4.25, changePercent: 1.13 },
-  AMZN: { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 178.35, change: -1.45, changePercent: -0.81 },
-  META: { symbol: 'META', name: 'Meta Platforms', price: 505.20, change: 8.90, changePercent: 1.79 },
-  AMD: { symbol: 'AMD', name: 'AMD Inc.', price: 142.50, change: 3.20, changePercent: 2.30 },
+// Symbol names database
+const symbolNames: Record<string, string> = {
+  // Tech
+  AAPL: 'Apple Inc.',
+  GOOGL: 'Alphabet Inc.',
+  MSFT: 'Microsoft Corp.',
+  AMZN: 'Amazon.com Inc.',
+  META: 'Meta Platforms',
+  NVDA: 'NVIDIA Corp.',
+  TSLA: 'Tesla Inc.',
+  AMD: 'AMD Inc.',
+  INTC: 'Intel Corp.',
+  CRM: 'Salesforce Inc.',
+  ORCL: 'Oracle Corp.',
+  ADBE: 'Adobe Inc.',
+  CSCO: 'Cisco Systems',
+  AVGO: 'Broadcom Inc.',
+  QCOM: 'Qualcomm Inc.',
+  // Media
+  NFLX: 'Netflix Inc.',
+  DIS: 'Walt Disney Co.',
+  CMCSA: 'Comcast Corp.',
+  SPOT: 'Spotify',
+  // Finance
+  JPM: 'JPMorgan Chase',
+  BAC: 'Bank of America',
+  WFC: 'Wells Fargo',
+  GS: 'Goldman Sachs',
+  MS: 'Morgan Stanley',
+  V: 'Visa Inc.',
+  MA: 'Mastercard Inc.',
+  PYPL: 'PayPal Holdings',
+  SQ: 'Block Inc.',
+  COIN: 'Coinbase',
+  // Healthcare
+  JNJ: 'Johnson & Johnson',
+  UNH: 'UnitedHealth',
+  PFE: 'Pfizer Inc.',
+  MRK: 'Merck & Co.',
+  ABBV: 'AbbVie Inc.',
+  LLY: 'Eli Lilly',
+  TMO: 'Thermo Fisher',
+  // Consumer
+  WMT: 'Walmart Inc.',
+  COST: 'Costco',
+  HD: 'Home Depot',
+  MCD: "McDonald's",
+  SBUX: 'Starbucks',
+  NKE: 'Nike Inc.',
+  KO: 'Coca-Cola',
+  PEP: 'PepsiCo',
+  // Energy
+  XOM: 'Exxon Mobil',
+  CVX: 'Chevron Corp.',
+  COP: 'ConocoPhillips',
+  // Industrial
+  BA: 'Boeing Co.',
+  CAT: 'Caterpillar',
+  GE: 'General Electric',
+  UPS: 'UPS',
+  FDX: 'FedEx Corp.',
+  // ETFs
+  SPY: 'S&P 500 ETF',
+  QQQ: 'Nasdaq 100 ETF',
+  DIA: 'Dow Jones ETF',
+  IWM: 'Russell 2000 ETF',
+  VTI: 'Total Stock Market ETF',
+  VOO: 'Vanguard S&P 500',
+  ARKK: 'ARK Innovation ETF',
+  // Crypto
+  MSTR: 'MicroStrategy',
+  MARA: 'Marathon Digital',
+  RIOT: 'Riot Platforms',
+}
+
+// Generate mock price data for any symbol
+function generateMockData(symbol: string): WatchlistItem {
+  // Use symbol hash to generate consistent "random" data
+  const hash = symbol.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+  const basePrice = 50 + (hash % 500)
+  const change = ((hash % 20) - 10) + Math.random() * 2 - 1
+  const changePercent = (change / basePrice) * 100
+
+  return {
+    symbol,
+    name: symbolNames[symbol] || `${symbol} Stock`,
+    price: basePrice + Math.random() * 10,
+    change: parseFloat(change.toFixed(2)),
+    changePercent: parseFloat(changePercent.toFixed(2)),
+  }
 }
 
 interface WatchlistProps {
@@ -37,10 +117,8 @@ export function Watchlist({ symbols, onRemove }: WatchlistProps) {
   const [watchlistData, setWatchlistData] = useState<WatchlistItem[]>([])
 
   useEffect(() => {
-    // In production, fetch real data from API
-    const data = symbols
-      .map((symbol) => mockWatchlistData[symbol])
-      .filter(Boolean)
+    // Generate data for all symbols (including custom ones)
+    const data = symbols.map((symbol) => generateMockData(symbol))
     setWatchlistData(data)
   }, [symbols])
 
