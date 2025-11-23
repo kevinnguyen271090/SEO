@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         type,
         title,
         message,
-        data: data ? JSON.stringify(data) : null,
+        data: data || undefined,
       },
     })
 
