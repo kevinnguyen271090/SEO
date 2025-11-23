@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // User authentication and profile
@@ -17,13 +18,14 @@ model User {
   password      String
   telegramId    String?   @unique
   emailVerified Boolean   @default(false)
-  preferences   String?   // Alert settings, theme, etc (JSON serialized)
+  preferences   Json?     // Alert settings, theme, etc
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   portfolios    Portfolio[]
   backtests     Backtest[]
   alerts        Alert[]
+  watchlists    Watchlist[]
 
   @@index([email])
 }
@@ -55,7 +57,7 @@ model Signal {
   entryPrice   Float
   targetPrice  Float?
   stopLoss     Float?
-  indicators   String   // Technical indicator values (JSON serialized)
+  indicators   Json     // Technical indicator values
   reasoning    String?  // AI-generated reasoning
   status       String   @default("active") // "active", "executed", "expired"
   expiresAt    DateTime?
@@ -96,7 +98,7 @@ model Backtest {
   id            String   @id @default(cuid())
   userId        String
   name          String
-  strategyConfig String  // Strategy parameters (JSON serialized)
+  strategyConfig Json    // Strategy parameters
   symbols       String   // Tested symbols (comma-separated)
   startDate     DateTime
   endDate       DateTime
@@ -111,7 +113,7 @@ model Backtest {
   totalReturn   Float
   sharpeRatio   Float?
 
-  results       String   // Detailed trade-by-trade results (JSON serialized)
+  results       Json     // Detailed trade-by-trade results
   createdAt     DateTime @default(now())
 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -126,7 +128,7 @@ model Alert {
   type      String   // "signal", "price_alert", "portfolio_update"
   title     String
   message   String
-  data      String?  // Additional context (JSON serialized)
+  data      Json?    // Additional context
   isRead    Boolean  @default(false)
   sentAt    DateTime?
   createdAt DateTime @default(now())
@@ -151,4 +153,33 @@ model MarketData {
 
   @@unique([symbol, interval, timestamp])
   @@index([symbol, interval, timestamp])
+}
+
+// User watchlists
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  symbols   String[] // Array of stock symbols
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Price alerts
+model PriceAlert {
+  id          String   @id @default(cuid())
+  userId      String
+  symbol      String
+  condition   String   // "above", "below", "crosses"
+  targetPrice Float
+  isActive    Boolean  @default(true)
+  triggeredAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, isActive])
+  @@index([symbol, isActive])
 }
