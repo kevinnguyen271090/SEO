@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth/auth-options'
 import { db } from '@/lib/db'
 import { runBacktest, type BacktestStrategy } from '@/lib/backtesting/engine'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   try {
     // const session = await getServerSession(authOptions)

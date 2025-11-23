@@ -9,6 +9,9 @@ import {
   isMACDBearishCrossover,
 } from '@/lib/indicators'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/signals
  * Generate trading signals for specified symbols

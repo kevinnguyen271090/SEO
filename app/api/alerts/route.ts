@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/alerts
  * Get user's alerts/notifications

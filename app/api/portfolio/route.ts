@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth/auth-options'
 import { db } from '@/lib/db'
 import { getQuote } from '@/lib/api/market-data'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/portfolio
  * Get user's portfolios

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getQuote, getMultipleQuotes, getTrendingStocks, isMarketOpen } from '@/lib/api/market-data'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/market-data?symbol=AAPL
  * or
