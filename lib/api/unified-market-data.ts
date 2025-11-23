@@ -1,13 +1,18 @@
 /**
  * Unified Market Data Service
- * Combines data from multiple sources: Binance (Crypto), Yahoo Finance (US Stocks),
- * Finnhub (Forex), and VN Stocks API
+ * Combines data from multiple FREE sources (optimized for MVP):
+ * - Binance (Crypto) - unlimited calls
+ * - Yahoo Finance (US Stocks) - no API key needed
+ * - Finnhub (Forex) - 60 calls/min free tier
+ * - VN Stocks (simulated) - SSI API pending
  */
 
 import { getCrypto24hrTicker, getMultipleCrypto24hrTickers, isCryptoSymbol, CryptoQuote } from './binance'
-import { getForexQuote, getMultipleForexQuotes, isForexSymbol, ForexQuote, getStockQuote } from './finnhub'
+import { getForexQuote, getMultipleForexQuotes, isForexSymbol, ForexQuote, getStockQuote as getFinnhubStockQuote } from './finnhub'
 import { getVNStockQuote, getMultipleVNStockQuotes, isVNStockSymbol, VNStockQuote } from './vn-stocks'
 import { getQuote, getMultipleQuotes, MarketQuote } from './market-data'
+// Massive API available but limited to 5 calls/min on free tier
+// import { getStockQuote as getMassiveStockQuote, getMultipleSnapshots } from './massive'
 
 export type MarketType = 'crypto' | 'forex' | 'stock' | 'vn-stock'
 
@@ -110,31 +115,43 @@ export async function getUnifiedQuote(symbol: string): Promise<UnifiedQuote | nu
       }
       case 'stock':
       default: {
-        // Try Finnhub first, fallback to Yahoo Finance
-        const finnhubQuote = await getStockQuote(symbol)
+        // Primary: Yahoo Finance (no API key needed, reliable)
+        const yahooQuote = await getQuote(symbol)
+        if (yahooQuote && yahooQuote.price > 0) {
+          return {
+            symbol: yahooQuote.symbol,
+            name: yahooQuote.symbol,
+            price: yahooQuote.price,
+            change: yahooQuote.change,
+            changePercent: yahooQuote.changePercent,
+            volume: yahooQuote.volume,
+            marketType: 'stock',
+            currency: '$',
+            lastUpdated: yahooQuote.timestamp
+          }
+        }
+
+        // Fallback: Finnhub (60 calls/min)
+        const finnhubQuote = await getFinnhubStockQuote(symbol)
         if (finnhubQuote && finnhubQuote.price > 0) {
           return transformToUnified(finnhubQuote, marketType)
         }
-        // Fallback to Yahoo Finance
-        const yahooQuote = await getQuote(symbol)
-        if (!yahooQuote) return null
-        return {
-          symbol: yahooQuote.symbol,
-          name: yahooQuote.symbol,
-          price: yahooQuote.price,
-          change: yahooQuote.change,
-          changePercent: yahooQuote.changePercent,
-          volume: yahooQuote.volume,
-          marketType: 'stock',
-          currency: '$',
-          lastUpdated: yahooQuote.timestamp
-        }
+
+        return null
       }
     }
   } catch (error) {
     console.error(`Error fetching unified quote for ${symbol}:`, error)
     return null
   }
+}
+
+/**
+ * Fetch multiple stock quotes
+ * Primary: Yahoo Finance (no rate limit, no API key)
+ */
+async function fetchMultipleStockQuotes(symbols: string[]): Promise<MarketQuote[]> {
+  return getMultipleQuotes(symbols)
 }
 
 /**
@@ -169,7 +186,7 @@ export async function getUnifiedQuotes(symbols: string[]): Promise<UnifiedQuote[
     cryptoSymbols.length > 0 ? getMultipleCrypto24hrTickers(cryptoSymbols) : [],
     forexSymbols.length > 0 ? getMultipleForexQuotes(forexSymbols) : [],
     vnStockSymbols.length > 0 ? getMultipleVNStockQuotes(vnStockSymbols) : [],
-    stockSymbols.length > 0 ? getMultipleQuotes(stockSymbols) : []
+    stockSymbols.length > 0 ? fetchMultipleStockQuotes(stockSymbols) : []
   ])
 
   // Transform and combine results
