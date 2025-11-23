@@ -1,13 +1,14 @@
 /**
  * Unified Market Data Service
  * Combines data from multiple FREE sources (optimized for MVP):
- * - Binance (Crypto) - unlimited calls
+ * - CoinGecko (Crypto) - 10-30 calls/min free tier
  * - Yahoo Finance (US Stocks) - no API key needed
  * - Finnhub (Forex) - 60 calls/min free tier
  * - VN Stocks (simulated) - SSI API pending
  */
 
-import { getCrypto24hrTicker, getMultipleCrypto24hrTickers, isCryptoSymbol, CryptoQuote } from './binance'
+// Use CoinGecko instead of Binance (Binance is blocked in some regions)
+import { getCrypto24hrTicker, getMultipleCrypto24hrTickers, isCryptoSymbol, CryptoQuote } from './coingecko'
 import { getForexQuote, getMultipleForexQuotes, isForexSymbol, ForexQuote, getStockQuote as getFinnhubStockQuote } from './finnhub'
 import { getVNStockQuote, getMultipleVNStockQuotes, isVNStockSymbol, VNStockQuote } from './vn-stocks'
 import { getQuote, getMultipleQuotes, MarketQuote } from './market-data'
