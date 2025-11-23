@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server'
-import { getQuote, getMultipleQuotes, getTrendingStocks, isMarketOpen } from '@/lib/api/market-data'
+import {
+  getUnifiedQuote,
+  getUnifiedQuotes,
+  getMarketStatus,
+  detectMarketType,
+  formatPrice
+} from '@/lib/api/unified-market-data'
+import { getTrendingStocks } from '@/lib/api/market-data'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/market-data?symbol=AAPL
- * or
- * GET /api/market-data?symbols=AAPL,TSLA,NVDA
+ * GET /api/market-data?symbols=AAPL,TSLA,BTC-USD,EUR/USD,VCB.VN
+ * GET /api/market-data?action=status&market=crypto
+ * GET /api/market-data?action=trending
  */
 export async function GET(request: Request) {
   try {
@@ -15,11 +23,17 @@ export async function GET(request: Request) {
     const symbol = searchParams.get('symbol')
     const symbols = searchParams.get('symbols')
     const action = searchParams.get('action')
+    const market = searchParams.get('market') as 'crypto' | 'forex' | 'stock' | 'vn-stock' | null
 
     // Check market status
     if (action === 'status') {
+      const marketType = market || 'stock'
+      const status = getMarketStatus(marketType)
+
       return NextResponse.json({
-        isOpen: isMarketOpen(),
+        success: true,
+        market: marketType,
+        ...status,
         timestamp: new Date().toISOString(),
       })
     }
@@ -27,7 +41,7 @@ export async function GET(request: Request) {
     // Get trending stocks
     if (action === 'trending') {
       const trendingSymbols = await getTrendingStocks()
-      const quotes = await getMultipleQuotes(trendingSymbols)
+      const quotes = await getUnifiedQuotes(trendingSymbols)
 
       return NextResponse.json({
         success: true,
@@ -37,7 +51,7 @@ export async function GET(request: Request) {
 
     // Get single quote
     if (symbol) {
-      const quote = await getQuote(symbol)
+      const quote = await getUnifiedQuote(symbol)
 
       if (!quote) {
         return NextResponse.json(
@@ -48,19 +62,25 @@ export async function GET(request: Request) {
 
       return NextResponse.json({
         success: true,
-        data: quote,
+        data: {
+          ...quote,
+          formattedPrice: formatPrice(quote.price, quote.marketType)
+        },
       })
     }
 
     // Get multiple quotes
     if (symbols) {
       const symbolList = symbols.split(',').map(s => s.trim())
-      const quotes = await getMultipleQuotes(symbolList)
+      const quotes = await getUnifiedQuotes(symbolList)
 
       return NextResponse.json({
         success: true,
         count: quotes.length,
-        data: quotes,
+        data: quotes.map(q => ({
+          ...q,
+          formattedPrice: formatPrice(q.price, q.marketType)
+        })),
       })
     }
 
