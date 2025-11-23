@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import { Search, TrendingUp, Plus, Star, ArrowRight } from 'lucide-react'
+import { Search, TrendingUp, Plus, Star, ArrowRight, Bitcoin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -85,10 +85,83 @@ const allSymbols = [
   { symbol: 'VOO', name: 'Vanguard S&P 500', category: 'ETF' },
   { symbol: 'ARKK', name: 'ARK Innovation ETF', category: 'ETF' },
 
-  // Crypto-related
-  { symbol: 'MSTR', name: 'MicroStrategy', category: 'Crypto' },
-  { symbol: 'MARA', name: 'Marathon Digital', category: 'Crypto' },
-  { symbol: 'RIOT', name: 'Riot Platforms', category: 'Crypto' },
+  // ============ CRYPTO ============
+  // Major Cryptocurrencies
+  { symbol: 'BTC-USD', name: 'Bitcoin', category: 'Crypto' },
+  { symbol: 'ETH-USD', name: 'Ethereum', category: 'Crypto' },
+  { symbol: 'BNB-USD', name: 'Binance Coin', category: 'Crypto' },
+  { symbol: 'XRP-USD', name: 'Ripple', category: 'Crypto' },
+  { symbol: 'SOL-USD', name: 'Solana', category: 'Crypto' },
+  { symbol: 'ADA-USD', name: 'Cardano', category: 'Crypto' },
+  { symbol: 'DOGE-USD', name: 'Dogecoin', category: 'Crypto' },
+  { symbol: 'DOT-USD', name: 'Polkadot', category: 'Crypto' },
+  { symbol: 'MATIC-USD', name: 'Polygon', category: 'Crypto' },
+  { symbol: 'SHIB-USD', name: 'Shiba Inu', category: 'Crypto' },
+  { symbol: 'AVAX-USD', name: 'Avalanche', category: 'Crypto' },
+  { symbol: 'LINK-USD', name: 'Chainlink', category: 'Crypto' },
+  { symbol: 'UNI-USD', name: 'Uniswap', category: 'Crypto' },
+  { symbol: 'ATOM-USD', name: 'Cosmos', category: 'Crypto' },
+  { symbol: 'LTC-USD', name: 'Litecoin', category: 'Crypto' },
+  { symbol: 'FIL-USD', name: 'Filecoin', category: 'Crypto' },
+  { symbol: 'APT-USD', name: 'Aptos', category: 'Crypto' },
+  { symbol: 'ARB-USD', name: 'Arbitrum', category: 'Crypto' },
+  { symbol: 'OP-USD', name: 'Optimism', category: 'Crypto' },
+  { symbol: 'NEAR-USD', name: 'NEAR Protocol', category: 'Crypto' },
+  { symbol: 'PEPE-USD', name: 'Pepe', category: 'Crypto' },
+  { symbol: 'SUI-USD', name: 'Sui', category: 'Crypto' },
+  { symbol: 'INJ-USD', name: 'Injective', category: 'Crypto' },
+  { symbol: 'SEI-USD', name: 'Sei', category: 'Crypto' },
+  { symbol: 'TIA-USD', name: 'Celestia', category: 'Crypto' },
+
+  // Crypto-related Stocks
+  { symbol: 'MSTR', name: 'MicroStrategy', category: 'Crypto Stock' },
+  { symbol: 'MARA', name: 'Marathon Digital', category: 'Crypto Stock' },
+  { symbol: 'RIOT', name: 'Riot Platforms', category: 'Crypto Stock' },
+  { symbol: 'CLSK', name: 'CleanSpark', category: 'Crypto Stock' },
+  { symbol: 'HUT', name: 'Hut 8 Mining', category: 'Crypto Stock' },
+  { symbol: 'BITF', name: 'Bitfarms', category: 'Crypto Stock' },
+
+  // ============ VIETNAM STOCKS (HOSE) ============
+  // Banks
+  { symbol: 'VCB.VN', name: 'Vietcombank', category: 'VN Bank' },
+  { symbol: 'BID.VN', name: 'BIDV', category: 'VN Bank' },
+  { symbol: 'CTG.VN', name: 'VietinBank', category: 'VN Bank' },
+  { symbol: 'TCB.VN', name: 'Techcombank', category: 'VN Bank' },
+  { symbol: 'MBB.VN', name: 'MB Bank', category: 'VN Bank' },
+  { symbol: 'VPB.VN', name: 'VPBank', category: 'VN Bank' },
+  { symbol: 'ACB.VN', name: 'ACB', category: 'VN Bank' },
+  { symbol: 'HDB.VN', name: 'HDBank', category: 'VN Bank' },
+  { symbol: 'STB.VN', name: 'Sacombank', category: 'VN Bank' },
+  { symbol: 'TPB.VN', name: 'TPBank', category: 'VN Bank' },
+
+  // Real Estate
+  { symbol: 'VIC.VN', name: 'Vingroup', category: 'VN Real Estate' },
+  { symbol: 'VHM.VN', name: 'Vinhomes', category: 'VN Real Estate' },
+  { symbol: 'VRE.VN', name: 'Vincom Retail', category: 'VN Real Estate' },
+  { symbol: 'NVL.VN', name: 'Novaland', category: 'VN Real Estate' },
+  { symbol: 'KDH.VN', name: 'Khang Dien House', category: 'VN Real Estate' },
+  { symbol: 'DXG.VN', name: 'Dat Xanh', category: 'VN Real Estate' },
+
+  // Tech & Retail
+  { symbol: 'FPT.VN', name: 'FPT Corporation', category: 'VN Tech' },
+  { symbol: 'MWG.VN', name: 'The Gioi Di Dong', category: 'VN Retail' },
+  { symbol: 'PNJ.VN', name: 'Phu Nhuan Jewelry', category: 'VN Retail' },
+
+  // Industry & Energy
+  { symbol: 'HPG.VN', name: 'Hoa Phat Group', category: 'VN Industry' },
+  { symbol: 'GAS.VN', name: 'PV Gas', category: 'VN Energy' },
+  { symbol: 'PLX.VN', name: 'Petrolimex', category: 'VN Energy' },
+  { symbol: 'POW.VN', name: 'PV Power', category: 'VN Energy' },
+  { symbol: 'GVR.VN', name: 'Vietnam Rubber', category: 'VN Industry' },
+  { symbol: 'MSN.VN', name: 'Masan Group', category: 'VN Consumer' },
+  { symbol: 'VNM.VN', name: 'Vinamilk', category: 'VN Consumer' },
+  { symbol: 'SAB.VN', name: 'Sabeco', category: 'VN Consumer' },
+
+  // VN Index & ETFs
+  { symbol: 'VNINDEX', name: 'VN-Index', category: 'VN Index' },
+  { symbol: 'VN30', name: 'VN30 Index', category: 'VN Index' },
+  { symbol: 'E1VFVN30.VN', name: 'VN30 ETF', category: 'VN ETF' },
+  { symbol: 'FUEVFVND.VN', name: 'VN Diamond ETF', category: 'VN ETF' },
 ]
 
 // Popular symbols shown by default
@@ -103,24 +176,35 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [results, setResults] = useState<typeof allSymbols>([])
+  const [customSymbols, setCustomSymbols] = useState<typeof allSymbols>([])
   const searchRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
+  // Load custom symbols from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('customSymbols')
+    if (saved) {
+      setCustomSymbols(JSON.parse(saved))
+    }
+  }, [])
+
   // Filter results based on query
   useEffect(() => {
+    const allAvailableSymbols = [...allSymbols, ...customSymbols]
+
     if (query.trim() === '') {
       setResults(popularSymbols)
     } else {
       const searchQuery = query.toLowerCase()
-      const filtered = allSymbols.filter(
+      const filtered = allAvailableSymbols.filter(
         (s) =>
           s.symbol.toLowerCase().includes(searchQuery) ||
           s.name.toLowerCase().includes(searchQuery) ||
           s.category.toLowerCase().includes(searchQuery)
       )
 
-      // If user typed a valid symbol format but not in list, add it as custom
-      if (filtered.length === 0 && query.match(/^[A-Za-z]{1,5}$/)) {
+      // If user typed a valid symbol format but not in list, add it as custom option
+      if (filtered.length === 0 && query.match(/^[A-Za-z0-9.-]{1,12}$/)) {
         filtered.push({
           symbol: query.toUpperCase(),
           name: 'Custom Symbol',
@@ -130,7 +214,7 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
 
       setResults(filtered.slice(0, 15)) // Limit to 15 results
     }
-  }, [query])
+  }, [query, customSymbols])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -157,6 +241,13 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
     }
   }
 
+  const handleAddCustomSymbol = (symbol: string, name: string = 'Custom Symbol') => {
+    const newSymbol = { symbol: symbol.toUpperCase(), name, category: 'Custom' }
+    const updated = [...customSymbols, newSymbol]
+    setCustomSymbols(updated)
+    localStorage.setItem('customSymbols', JSON.stringify(updated))
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && query.trim()) {
       // Go to the first result or the custom symbol
@@ -166,13 +257,15 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
   }
 
   const isInWatchlist = (symbol: string) => watchlist.includes(symbol)
+  const isCrypto = (category: string) => category.toLowerCase().includes('crypto')
+  const isVN = (category: string) => category.toLowerCase().includes('vn')
 
   return (
     <div ref={searchRef} className="relative w-full max-w-md">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search 70+ symbols (AAPL, SPY, tech, ...)"
+          placeholder="Search stocks, crypto, VN (BTC, VCB, tech...)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
@@ -185,9 +278,14 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
         <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto">
           <div className="p-2">
             {query === '' && (
-              <p className="text-xs text-muted-foreground px-2 py-1 mb-2">
-                Popular Symbols - Type to search 70+ stocks & ETFs
-              </p>
+              <div className="px-2 py-1 mb-2">
+                <p className="text-xs text-muted-foreground">
+                  150+ symbols: US Stocks, Crypto, Vietnam Stocks
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Try: "crypto", "vn bank", "tech", "BTC", "VCB"
+                </p>
+              </div>
             )}
 
             {query !== '' && results.length > 0 && (
@@ -199,7 +297,10 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
             {results.length === 0 && query !== '' ? (
               <div className="px-2 py-4">
                 <div
-                  onClick={() => handleViewChart(query.toUpperCase())}
+                  onClick={() => {
+                    handleAddCustomSymbol(query)
+                    handleViewChart(query.toUpperCase())
+                  }}
                   className="flex items-center justify-between px-3 py-3 rounded-md hover:bg-muted cursor-pointer transition-colors border border-dashed"
                 >
                   <div className="flex items-center gap-3">
@@ -208,13 +309,13 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
                     </div>
                     <div>
                       <p className="font-semibold">{query.toUpperCase()}</p>
-                      <p className="text-xs text-muted-foreground">Search this symbol</p>
+                      <p className="text-xs text-muted-foreground">Add & view this symbol</p>
                     </div>
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <p className="text-xs text-muted-foreground text-center mt-2">
-                  Press Enter or click to view chart
+                  Press Enter to add and view chart
                 </p>
               </div>
             ) : (
@@ -226,13 +327,29 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
                     className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-muted cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <TrendingUp className="h-5 w-5 text-primary" />
+                      <div className={cn(
+                        "w-10 h-10 rounded-lg flex items-center justify-center",
+                        isCrypto(item.category) ? "bg-orange-500/10" :
+                        isVN(item.category) ? "bg-red-500/10" : "bg-primary/10"
+                      )}>
+                        {isCrypto(item.category) ? (
+                          <Bitcoin className="h-5 w-5 text-orange-500" />
+                        ) : (
+                          <TrendingUp className={cn(
+                            "h-5 w-5",
+                            isVN(item.category) ? "text-red-500" : "text-primary"
+                          )} />
+                        )}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-semibold">{item.symbol}</p>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                          <span className={cn(
+                            "text-[10px] px-1.5 py-0.5 rounded",
+                            isCrypto(item.category) ? "bg-orange-500/20 text-orange-600" :
+                            isVN(item.category) ? "bg-red-500/20 text-red-600" :
+                            "bg-muted text-muted-foreground"
+                          )}>
                             {item.category}
                           </span>
                         </div>
