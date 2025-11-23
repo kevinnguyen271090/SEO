@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import { Search, TrendingUp, Plus, Star, ArrowRight, Bitcoin } from 'lucide-react'
+import { Search, TrendingUp, Plus, Star, ArrowRight, Bitcoin, DollarSign } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -162,6 +162,25 @@ const allSymbols = [
   { symbol: 'VN30', name: 'VN30 Index', category: 'VN Index' },
   { symbol: 'E1VFVN30.VN', name: 'VN30 ETF', category: 'VN ETF' },
   { symbol: 'FUEVFVND.VN', name: 'VN Diamond ETF', category: 'VN ETF' },
+
+  // ============ FOREX ============
+  // Major Pairs
+  { symbol: 'EUR/USD', name: 'Euro / US Dollar', category: 'Forex Major' },
+  { symbol: 'GBP/USD', name: 'British Pound / US Dollar', category: 'Forex Major' },
+  { symbol: 'USD/JPY', name: 'US Dollar / Japanese Yen', category: 'Forex Major' },
+  { symbol: 'USD/CHF', name: 'US Dollar / Swiss Franc', category: 'Forex Major' },
+  { symbol: 'AUD/USD', name: 'Australian Dollar / US Dollar', category: 'Forex Major' },
+  { symbol: 'USD/CAD', name: 'US Dollar / Canadian Dollar', category: 'Forex Major' },
+  { symbol: 'NZD/USD', name: 'New Zealand Dollar / US Dollar', category: 'Forex Major' },
+  // Cross Pairs
+  { symbol: 'EUR/GBP', name: 'Euro / British Pound', category: 'Forex Cross' },
+  { symbol: 'EUR/JPY', name: 'Euro / Japanese Yen', category: 'Forex Cross' },
+  { symbol: 'GBP/JPY', name: 'British Pound / Japanese Yen', category: 'Forex Cross' },
+  { symbol: 'AUD/JPY', name: 'Australian Dollar / Japanese Yen', category: 'Forex Cross' },
+  { symbol: 'EUR/AUD', name: 'Euro / Australian Dollar', category: 'Forex Cross' },
+  // Commodities
+  { symbol: 'XAU/USD', name: 'Gold / US Dollar', category: 'Forex Commodity' },
+  { symbol: 'XAG/USD', name: 'Silver / US Dollar', category: 'Forex Commodity' },
 ]
 
 // Popular symbols shown by default
@@ -259,13 +278,14 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
   const isInWatchlist = (symbol: string) => watchlist.includes(symbol)
   const isCrypto = (category: string) => category.toLowerCase().includes('crypto')
   const isVN = (category: string) => category.toLowerCase().includes('vn')
+  const isForex = (category: string) => category.toLowerCase().includes('forex')
 
   return (
     <div ref={searchRef} className="relative w-full max-w-md">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search stocks, crypto, VN (BTC, VCB, tech...)"
+          placeholder="Search stocks, crypto, forex, VN (BTC, EUR/USD, VCB...)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
@@ -280,10 +300,10 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
             {query === '' && (
               <div className="px-2 py-1 mb-2">
                 <p className="text-xs text-muted-foreground">
-                  150+ symbols: US Stocks, Crypto, Vietnam Stocks
+                  170+ symbols: US Stocks, Crypto, Forex, Vietnam Stocks
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Try: "crypto", "vn bank", "tech", "BTC", "VCB"
+                  Try: "crypto", "forex", "vn bank", "BTC", "EUR/USD", "VCB"
                 </p>
               </div>
             )}
@@ -330,10 +350,13 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
                       <div className={cn(
                         "w-10 h-10 rounded-lg flex items-center justify-center",
                         isCrypto(item.category) ? "bg-orange-500/10" :
-                        isVN(item.category) ? "bg-red-500/10" : "bg-primary/10"
+                        isVN(item.category) ? "bg-red-500/10" :
+                        isForex(item.category) ? "bg-blue-500/10" : "bg-primary/10"
                       )}>
                         {isCrypto(item.category) ? (
                           <Bitcoin className="h-5 w-5 text-orange-500" />
+                        ) : isForex(item.category) ? (
+                          <DollarSign className="h-5 w-5 text-blue-500" />
                         ) : (
                           <TrendingUp className={cn(
                             "h-5 w-5",
@@ -348,6 +371,7 @@ export function SymbolSearch({ onAddToWatchlist, watchlist = [] }: SymbolSearchP
                             "text-[10px] px-1.5 py-0.5 rounded",
                             isCrypto(item.category) ? "bg-orange-500/20 text-orange-600" :
                             isVN(item.category) ? "bg-red-500/20 text-red-600" :
+                            isForex(item.category) ? "bg-blue-500/20 text-blue-600" :
                             "bg-muted text-muted-foreground"
                           )}>
                             {item.category}
