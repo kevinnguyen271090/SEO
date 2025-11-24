@@ -1,11 +1,14 @@
-import { Suspense } from 'react'
+'use client'
+
+import { Suspense, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PriceChart } from '@/components/charts/price-chart'
 import { IndicatorChart } from '@/components/charts/indicator-chart'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
-import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react'
+import { ArrowLeft, TrendingUp, TrendingDown, Loader2, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 interface PageProps {
   params: {
@@ -13,29 +16,108 @@ interface PageProps {
   }
 }
 
-export default function SignalDetailPage({ params }: PageProps) {
-  const symbol = params.symbol.toUpperCase()
+interface PriceData {
+  symbol: string
+  name: string
+  price: number
+  change: number
+  changePercent: number
+  marketType: string
+  currency: string
+  formattedPrice?: string
+}
 
-  // Mock signal data
-  const signal = {
-    symbol,
-    type: 'BUY',
-    confidence: 87,
-    entryPrice: 178.25,
-    targetPrice: 192.50,
-    stopLoss: 172.00,
-    reasoning: 'RSI oversold (28.5), MACD bullish crossover, strong volume increase',
-    indicators: {
-      rsi: 28.5,
-      macd: 0.45,
-      signal: -0.12,
-      volume: 85432100,
-      avgVolume: 65234000,
-    },
+export default function SignalDetailPage({ params }: PageProps) {
+  const symbol = decodeURIComponent(params.symbol).toUpperCase()
+  const [priceData, setPriceData] = useState<PriceData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch real price data
+  const fetchPrice = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/market-data?symbol=${encodeURIComponent(symbol)}`)
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        setPriceData(result.data)
+        setError(null)
+      } else {
+        setError('Unable to fetch price')
+      }
+    } catch (err) {
+      console.error('Error fetching price:', err)
+      setError('Failed to load price data')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const potentialProfit = ((signal.targetPrice - signal.entryPrice) / signal.entryPrice) * 100
-  const riskReward = Math.abs((signal.targetPrice - signal.entryPrice) / (signal.entryPrice - signal.stopLoss))
+  useEffect(() => {
+    fetchPrice()
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchPrice, 30000)
+    return () => clearInterval(interval)
+  }, [symbol])
+
+  // Generate signal based on price (mock AI analysis)
+  const generateSignal = (price: number) => {
+    // Simple mock signal generation based on price
+    const hash = symbol.split('').reduce((a, b) => a + b.charCodeAt(0), 0)
+    const isBuy = hash % 2 === 0
+
+    const targetMultiplier = isBuy ? 1.08 : 0.92
+    const stopMultiplier = isBuy ? 0.965 : 1.035
+
+    return {
+      symbol,
+      type: isBuy ? 'BUY' : 'SELL',
+      confidence: 75 + (hash % 20),
+      entryPrice: price,
+      targetPrice: price * targetMultiplier,
+      stopLoss: price * stopMultiplier,
+      reasoning: isBuy
+        ? 'Technical indicators suggest bullish momentum. RSI showing oversold conditions with potential for reversal.'
+        : 'Technical analysis indicates bearish pressure. Consider taking profits or setting protective stops.',
+      indicators: {
+        rsi: 30 + (hash % 40),
+        macd: ((hash % 100) - 50) / 100,
+        signal: ((hash % 80) - 40) / 100,
+        volume: 50000000 + (hash % 50000000),
+        avgVolume: 45000000,
+      },
+    }
+  }
+
+  const currentPrice = priceData?.price || 0
+  const signal = generateSignal(currentPrice)
+
+  const potentialProfit = signal.entryPrice > 0
+    ? ((signal.targetPrice - signal.entryPrice) / signal.entryPrice) * 100
+    : 0
+  const riskReward = signal.entryPrice > 0
+    ? Math.abs((signal.targetPrice - signal.entryPrice) / (signal.entryPrice - signal.stopLoss))
+    : 0
+
+  // Format price based on market type
+  const formatPrice = (price: number) => {
+    if (!priceData) return `$${price.toFixed(2)}`
+
+    switch (priceData.marketType) {
+      case 'crypto':
+        if (price < 0.01) return `$${price.toFixed(6)}`
+        if (price < 1) return `$${price.toFixed(4)}`
+        return `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+      case 'forex':
+        return price.toFixed(5)
+      case 'vn-stock':
+        return new Intl.NumberFormat('vi-VN').format(price) + ' ₫'
+      default:
+        return `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,11 +130,42 @@ export default function SignalDetailPage({ params }: PageProps) {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold">{symbol}</h1>
-            <p className="text-muted-foreground mt-1">
-              {signal.type} Signal - {signal.confidence}% Confident
-            </p>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">{symbol}</h1>
+              {priceData?.marketType && (
+                <span className={cn(
+                  "text-xs px-2 py-1 rounded uppercase",
+                  priceData.marketType === 'crypto' ? "bg-orange-500/20 text-orange-600" :
+                  priceData.marketType === 'forex' ? "bg-blue-500/20 text-blue-600" :
+                  priceData.marketType === 'vn-stock' ? "bg-red-500/20 text-red-600" :
+                  "bg-primary/20 text-primary"
+                )}>
+                  {priceData.marketType === 'vn-stock' ? 'VN' : priceData.marketType}
+                </span>
+              )}
+            </div>
+            {loading ? (
+              <p className="text-muted-foreground mt-1 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading price...
+              </p>
+            ) : priceData ? (
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-2xl font-semibold">{formatPrice(priceData.price)}</span>
+                <span className={cn(
+                  "text-sm",
+                  priceData.change >= 0 ? "text-green-500" : "text-red-500"
+                )}>
+                  {priceData.change >= 0 ? '+' : ''}{priceData.change.toFixed(2)} ({priceData.changePercent.toFixed(2)}%)
+                </span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={fetchPrice}>
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <p className="text-muted-foreground mt-1">{error || 'Price unavailable'}</p>
+            )}
           </div>
         </div>
 
@@ -63,7 +176,7 @@ export default function SignalDetailPage({ params }: PageProps) {
               <CardHeader>
                 <CardTitle>Price Chart</CardTitle>
                 <CardDescription>
-                  90-day candlestick chart with volume
+                  Real-time chart powered by TradingView
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -122,25 +235,27 @@ export default function SignalDetailPage({ params }: PageProps) {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Entry Price</p>
-                    <p className="text-lg font-semibold">${signal.entryPrice.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">Current Price</p>
+                    <p className="text-lg font-semibold">
+                      {loading ? '...' : formatPrice(signal.entryPrice)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Target</p>
                     <p className="text-lg font-semibold text-green-500">
-                      ${signal.targetPrice.toFixed(2)}
+                      {loading ? '...' : formatPrice(signal.targetPrice)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Stop Loss</p>
                     <p className="text-lg font-semibold text-red-500">
-                      ${signal.stopLoss.toFixed(2)}
+                      {loading ? '...' : formatPrice(signal.stopLoss)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Potential</p>
                     <p className="text-lg font-semibold text-primary">
-                      +{potentialProfit.toFixed(2)}%
+                      {signal.type === 'BUY' ? '+' : ''}{potentialProfit.toFixed(2)}%
                     </p>
                   </div>
                 </div>
@@ -166,7 +281,7 @@ export default function SignalDetailPage({ params }: PageProps) {
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">RSI:</span>
-                    <span className="font-medium">{signal.indicators.rsi}</span>
+                    <span className="font-medium">{signal.indicators.rsi.toFixed(1)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">MACD:</span>
@@ -182,6 +297,19 @@ export default function SignalDetailPage({ params }: PageProps) {
                 </div>
               </CardContent>
             </Card>
+
+            {priceData && (
+              <Card>
+                <CardContent className="pt-4">
+                  <p className="text-[10px] text-muted-foreground text-center">
+                    Data from {priceData.marketType === 'crypto' ? 'CoinGecko' :
+                      priceData.marketType === 'forex' ? 'Finnhub' :
+                      priceData.marketType === 'vn-stock' ? 'VN Stocks' : 'Yahoo Finance'}
+                    • Auto-refresh every 30s
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </main>
